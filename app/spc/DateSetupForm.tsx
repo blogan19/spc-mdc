@@ -87,6 +87,7 @@ interface Props {
   onCancel?: () => void;
   initialValues?: WizardInitialValues;
   initialRows?: MeasureRow[];
+  initialMode?: 'empty' | 'upload';
 }
 
 type Mode = 'empty' | 'upload';
@@ -111,11 +112,10 @@ async function readSpreadsheetAsCsv(file: File): Promise<string> {
   return XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheetName]);
 }
 
-export default function DateSetupForm({ onApply, onCancel, initialValues, initialRows }: Props) {
-  // In edit mode (initialValues provided) start straight on step 1 of
-  // the empty path; otherwise start on the mode-picker (step 0).
-  const [mode, setMode] = useState<Mode | null>(initialValues ? 'empty' : null);
-  const [step, setStep] = useState(initialValues ? 1 : 0);
+export default function DateSetupForm({ onApply, onCancel, initialValues, initialRows, initialMode }: Props) {
+  // Edit mode (initialValues) or pre-selected mode both skip the mode picker (step 0).
+  const [mode, setMode] = useState<Mode | null>(initialValues ? 'empty' : (initialMode ?? null));
+  const [step, setStep] = useState(initialValues || initialMode ? 1 : 0);
 
   // Shared form state — seeded from initialValues when editing.
   const [title, setTitle] = useState(initialValues?.name ?? '');

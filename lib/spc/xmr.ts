@@ -12,9 +12,6 @@ import type { SpcSegment } from './types';
 // sigma_hat = mean(moving range) / d2(n=2).
 const D2_N2 = 1.128;
 
-// 3 / d2 — convenience factor: UCL = mean + 2.66·mR-bar, LCL = mean − 2.66·mR-bar.
-const THREE_SIGMA_FACTOR = 3 / D2_N2;
-
 export function mean(values: readonly number[]): number {
   if (values.length === 0) return NaN;
   let sum = 0;
@@ -44,13 +41,14 @@ export function xmrLimits(
   values: readonly number[],
   startIndex: number,
   endIndex: number,
+  sigmaLevel = 3,
 ): SpcSegment {
   const centre = mean(values);
   const med = median(values);
   const mRs = movingRanges(values);
   const mRBar = mRs.length === 0 ? 0 : mean(mRs);
   const sigma = mRBar / D2_N2;
-  const halfWidth = THREE_SIGMA_FACTOR * mRBar;
+  const halfWidth = (sigmaLevel / D2_N2) * mRBar;
   return {
     startIndex,
     endIndex,

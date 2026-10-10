@@ -24,7 +24,7 @@ const HEADLINE_KEYS = [
 export default function DescriptiveStats({ measure }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const { stats: result, narrative } = useMemo(() => {
+  const { stats: result, narrative, ucl, lcl } = useMemo(() => {
     const kind = (['RunChart', 'P', 'C', 'U'] as const).includes(
       measure.chartKind as 'RunChart' | 'P' | 'C' | 'U',
     )
@@ -42,12 +42,18 @@ export default function DescriptiveStats({ measure }: Props) {
         recalculate: Boolean(d?.comment?.recalculate),
       }))
       .filter((r) => Number.isFinite(r.value));
-    const { analysis, plottedRows } = analyseSpc(sourceRows, { kind });
+    const sigmaLevel = measure.settings.sigmaLevel ?? 3;
+    const { analysis, plottedRows } = analyseSpc(sourceRows, { kind, sigmaLevel });
+    const lastSeg = analysis.segments.length > 0
+      ? analysis.segments[analysis.segments.length - 1]
+      : null;
     return {
       stats: describePlottedRows(plottedRows, analysis),
       narrative: describeVariation(plottedRows, analysis, measure.aim),
+      ucl: lastSeg?.ucl ?? null,
+      lcl: lastSeg?.lcl ?? null,
     };
-  }, [measure.chartKind, measure.data, measure.aim]);
+  }, [measure.chartKind, measure.data, measure.aim, measure.settings.sigmaLevel]);
 
   const isCategorical =
     measure.chartKind === 'Pareto' || measure.chartKind === 'Funnel';
@@ -86,7 +92,7 @@ export default function DescriptiveStats({ measure }: Props) {
                   {narrative}
                 </p>
               )}
-              <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+              <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
                 {headline.map((s) => (
                   <li
                     key={s.key}
@@ -101,6 +107,28 @@ export default function DescriptiveStats({ measure }: Props) {
                     </div>
                   </li>
                 ))}
+                {ucl !== null && Number.isFinite(ucl) && (
+                  <li
+                    className="rounded border border-gray-100 bg-gray-50 px-3 py-2"
+                    title="Upper control limit — points above this trigger Rule 1 (special cause)"
+                  >
+                    <div className="text-[10px] uppercase tracking-wide text-gray-500">UCL</div>
+                    <div className="text-base font-semibold text-gray-900 tabular-nums">
+                      {parseFloat(ucl.toFixed(2))}
+                    </div>
+                  </li>
+                )}
+                {lcl !== null && Number.isFinite(lcl) && (
+                  <li
+                    className="rounded border border-gray-100 bg-gray-50 px-3 py-2"
+                    title="Lower control limit — points below this trigger Rule 1 (special cause)"
+                  >
+                    <div className="text-[10px] uppercase tracking-wide text-gray-500">LCL</div>
+                    <div className="text-base font-semibold text-gray-900 tabular-nums">
+                      {parseFloat(lcl.toFixed(2))}
+                    </div>
+                  </li>
+                )}
               </ul>
             </>
           )}

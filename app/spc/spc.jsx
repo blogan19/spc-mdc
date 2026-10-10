@@ -23,7 +23,7 @@ const LineChart = ({ params }) => {
     description,
     xAxisLabel,
     yAxisLabel,
-    axisLabelSize = 12,
+    axisLabelSize = 18,
     aim = 'increase',
     target,
     chartKind = 'XmR',
@@ -52,6 +52,8 @@ const LineChart = ({ params }) => {
     showForecast = false,
     forecastPeriods = 6,
     downloadNote = '',
+    chartNote = '',
+    sigmaLevel = 3,
     onExportCsv,
   } = params;
 
@@ -80,7 +82,7 @@ const LineChart = ({ params }) => {
         comment: d.comment,
       }))
       .filter((r) => Number.isFinite(r.value));
-    const { analysis: a, plottedRows } = analyseSpc(sourceRows, { kind });
+    const { analysis: a, plottedRows } = analyseSpc(sourceRows, { kind, sigmaLevel });
     // Re-attach the comment field after the library has produced its
     // plotted rows so on-chart annotations still work in every kind.
     const rowsForRender = plottedRows.map((r, i) => ({ ...r, comment: sourceRows[i].comment }));
@@ -96,7 +98,7 @@ const LineChart = ({ params }) => {
       kind: a.kind,
       icons,
     };
-  }, [data, chartKind, aim, target]);
+  }, [data, chartKind, aim, target, sigmaLevel]);
 
   // Tick format follows the measure's increment so a monthly chart reads
   // "May-26" rather than "01/05/2026". `increment` is set by the date-setup
@@ -310,34 +312,6 @@ const LineChart = ({ params }) => {
       return defaultPointColor;
     };
 
-    const pointCircles = svg.append('g').selectAll('dot')
-      .data(plotted)
-      .enter().append('circle')
-      .attr('cx', (d) => x(d.date))
-      .attr('cy', (d) => y(d.value))
-      .attr('r', 5)
-      .style('fill', (_d, i) => colourFor(i));
-
-    // Click handler: open the annotation popover anchored to this point.
-    // Only attached when the host supplied a write callback — read-only
-    // contexts (e.g. exports, sub-process splits) skip this entirely.
-    if (canEditAnnotations) {
-      pointCircles
-        .style('cursor', 'pointer')
-        .on('click', function (_event, d) {
-          const i = plotted.indexOf(d);
-          if (i < 0) return;
-          setEditing({
-            rowIndex: i,
-            cx: x(d.date),
-            cy: y(d.value),
-            title: d.comment?.title ?? '',
-            text: d.comment?.label ?? '',
-            lockedAt: d.comment?.lockedAt ?? null,
-          });
-        });
-    }
-
     // The data line itself.
     svg.append('path')
       .datum(plotted)
@@ -388,6 +362,35 @@ const LineChart = ({ params }) => {
         .attr('d', d3.line()
           .x((d) => x(d.date))
           .y((d) => y(d.lcl)));
+    }
+
+    // Data points — drawn after all lines so they sit on top in SVG z-order.
+    const pointCircles = svg.append('g').selectAll('dot')
+      .data(plotted)
+      .enter().append('circle')
+      .attr('cx', (d) => x(d.date))
+      .attr('cy', (d) => y(d.value))
+      .attr('r', 5)
+      .style('fill', (_d, i) => colourFor(i));
+
+    // Click handler: open the annotation popover anchored to this point.
+    // Only attached when the host supplied a write callback — read-only
+    // contexts (e.g. exports, sub-process splits) skip this entirely.
+    if (canEditAnnotations) {
+      pointCircles
+        .style('cursor', 'pointer')
+        .on('click', function (_event, d) {
+          const i = plotted.indexOf(d);
+          if (i < 0) return;
+          setEditing({
+            rowIndex: i,
+            cx: x(d.date),
+            cy: y(d.value),
+            title: d.comment?.title ?? '',
+            text: d.comment?.label ?? '',
+            lockedAt: d.comment?.lockedAt ?? null,
+          });
+        });
     }
 
     // Forecast band — projects the LATEST segment's mean / UCL / LCL
@@ -779,7 +782,7 @@ const LineChart = ({ params }) => {
     lineColor, lineWidth, medianColor, medianWidth, confColor, confWidth,
     defaultPointColor, successColor, outlierColor, yStart, events, pdsaBands,
     showMean, showLimits, showTarget, centreLineKind, logoDataUrl,
-    backgroundColor, showForecast, forecastPeriods, increment,
+    backgroundColor, showForecast, forecastPeriods, increment, sigmaLevel,
   ]);
 
   const exportPng = () => {
@@ -793,22 +796,32 @@ const LineChart = ({ params }) => {
     const url = URL.createObjectURL(svgBlob);
     const img = new Image();
     img.onload = () => {
+      const CHART_NOTE_H = chartNote?.trim() ? 48 : 0;
       const NOTE_H = downloadNote?.trim() ? 48 : 0;
       const canvas = document.createElement('canvas');
       canvas.width = width;
-      canvas.height = height + NOTE_H;
+      canvas.height = height + CHART_NOTE_H + NOTE_H;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
-      if (NOTE_H) {
+      if (CHART_NOTE_H) {
         ctx.fillStyle = '#f8fafc';
-        ctx.fillRect(0, height, width, NOTE_H);
+        ctx.fillRect(0, height, width, CHART_NOTE_H);
         ctx.fillStyle = '#334155';
         ctx.font = '13px Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(downloadNote.trim(), width / 2, height + NOTE_H / 2);
+        ctx.fillText(chartNote.trim(), width / 2, height + CHART_NOTE_H / 2);
+      }
+      if (NOTE_H) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, height + CHART_NOTE_H, width, NOTE_H);
+        ctx.fillStyle = '#334155';
+        ctx.font = '13px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(downloadNote.trim(), width / 2, height + CHART_NOTE_H + NOTE_H / 2);
       }
       URL.revokeObjectURL(url);
       canvas.toBlob((blob) => {

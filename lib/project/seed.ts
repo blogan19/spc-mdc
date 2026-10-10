@@ -21,7 +21,7 @@ export const defaultChartSettings: ChartSettings = {
   description: '',
   xAxisLabel: '',
   yAxisLabel: '',
-  axisLabelSize: 12,
+  axisLabelSize: 18,
   lineColor: '#6366f1',        // indigo-500 — clean, modern data line
   lineWidth: 2,
   medianColor: '#1e293b',      // slate-900 — dark authoritative mean line
@@ -40,6 +40,8 @@ export const defaultChartSettings: ChartSettings = {
   logoDataUrl: '',
   showForecast: false,
   forecastPeriods: 6,
+  sigmaLevel: 3,
+  chartNote: '',
 };
 
 export function emptyMeasure(id: string, name: string): Measure {

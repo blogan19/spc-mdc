@@ -95,6 +95,10 @@ export interface ChartSettings {
   forecastPeriods: number;
   /** Optional caption text appended below the chart in exported PNG. */
   downloadNote?: string;
+  /** Sigma level for control limits: 2, 2.5, or 3. Default 3. */
+  sigmaLevel?: number;
+  /** Editable description shown below the chart card and in PNG export. */
+  chartNote?: string;
 }
 
 export type SplitKind = 'none' | 'dayOfWeek' | 'weekdayWeekend' | 'month';

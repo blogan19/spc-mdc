@@ -16,6 +16,7 @@ export interface SegmentationResult {
 export function computeSegments(
   rows: readonly SpcRow[],
   kind: AnalysisKind = 'XmR',
+  sigmaLevel = 3,
 ): SegmentationResult {
   if (rows.length === 0) {
     return { segments: [], pointLimits: [] };
@@ -35,7 +36,7 @@ export function computeSegments(
     segments.push(
       kind === 'RunChart'
         ? runChartCentre(values, startIndex, endIndex)
-        : xmrLimits(values, startIndex, endIndex),
+        : xmrLimits(values, startIndex, endIndex, sigmaLevel),
     );
   }
 

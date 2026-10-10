@@ -13,9 +13,12 @@ import DescriptiveStats from './DescriptiveStats';
 import GoalsStrip from './GoalsStrip';
 import { downloadMeasureCsv } from '@/lib/project/exportCsv';
 import { allowedSplitOptions, splitRows } from '@/lib/project/split';
+import { analyseSpc } from '@/lib/spc';
+import { describeRules } from '@/lib/spc/describeRules';
 import type {
   AimDirection,
   ChartKind,
+  ChartSettings,
   Measure,
   MeasureRow,
   SplitKind,
@@ -31,6 +34,7 @@ interface MeasureViewProps {
   ) => void;
   onUpdateSettings: (patch: Partial<Measure['settings']>) => void;
   onOpenGuides?: () => void;
+  pendingImportFile?: File | null;
   onUpdateRows: (rows: Measure['data']) => void;
   onUpdateMeasureMeta: (
     patch: Partial<
@@ -50,12 +54,13 @@ export default function MeasureView({
   onUpdateMeasureMeta,
   onSetupMeasure,
   onOpenGuides,
+  pendingImportFile,
 }: MeasureViewProps) {
   const [showWizard, setShowWizard] = useState(false);
   const isPareto = measure.chartKind === 'Pareto';
   const isFunnel = measure.chartKind === 'Funnel';
   const isCategorical = isPareto || isFunnel;
-  const needsSetup = !isCategorical && measure.data.length === 0;
+  const needsSetup = !isCategorical && measure.data.length === 0 && !pendingImportFile;
 
   const strata = useMemo(
     () =>
@@ -88,6 +93,7 @@ export default function MeasureView({
             splitBy: measure.splitBy,
           } : undefined}
           initialRows={showWizard ? measure.data : undefined}
+          initialMode={!showWizard ? 'empty' : undefined}
         />
       </div>
     );
@@ -141,6 +147,28 @@ export default function MeasureView({
         </div>
       </div>
 
+      {!isCategorical && (
+        <div className="px-3 sm:px-6 mt-2">
+          <div className="mx-auto w-full max-w-7xl">
+            <textarea
+              value={measure.settings.chartNote ?? ''}
+              onChange={(e) => onUpdateSettings({ chartNote: e.target.value })}
+              placeholder="Add a description for this chart…"
+              rows={2}
+              className="bg-white/5 border border-slate-700 rounded-lg text-slate-300 text-sm p-3 w-full resize-y placeholder:text-slate-600"
+            />
+          </div>
+        </div>
+      )}
+
+      {!isCategorical && (
+        <div className="px-3 sm:px-6 mt-1">
+          <div className="mx-auto w-full max-w-7xl">
+            <SpecialCausePanel measure={measure} />
+          </div>
+        </div>
+      )}
+
       <div className="px-3 sm:px-6 mt-3">
         <div className="mx-auto w-full max-w-7xl">
           <DescriptiveStats measure={measure} />
@@ -157,6 +185,7 @@ export default function MeasureView({
             onUpdateSettings={onUpdateSettings}
             onUpdateRows={onUpdateRows}
             onUpdateTarget={(target) => onUpdateMeasureMeta({ target })}
+            autoOpenFile={pendingImportFile ?? null}
           />
         </div>
       </div>
@@ -186,7 +215,7 @@ function Controls({
       <button
         type="button"
         onClick={onRedo}
-        className="mr-auto text-xs text-gray-400 hover:text-indigo-600 transition-colors"
+        className="mr-auto text-xs text-gray-400 hover:text-slate-700 transition-colors"
         title="Re-run the setup wizard to change chart type, axis labels, cadence or date range"
       >
         ← Edit setup
@@ -208,6 +237,22 @@ function Controls({
           <option value="Funnel">Funnel (cross-unit)</option>
         </select>
       </label>
+
+      {!isCategorical && measure.chartKind !== 'RunChart' && (
+        <label className="flex items-center gap-1">
+          <span className="text-gray-600">Limits</span>
+          <select
+            value={measure.settings.sigmaLevel ?? 3}
+            onChange={(e) => onUpdateSettings({ sigmaLevel: Number(e.target.value) })}
+            className="border border-gray-300 rounded px-1 py-0.5"
+            title="Sigma level for control limits. NHS Making Data Count uses 3σ (the default). Reducing to 2σ gives narrower limits that catch more signals."
+          >
+            <option value={2}>2σ</option>
+            <option value={2.5}>2.5σ</option>
+            <option value={3}>3σ</option>
+          </select>
+        </label>
+      )}
 
       {!isCategorical && (
         <>
@@ -271,14 +316,14 @@ function Controls({
             value={measure.settings.downloadNote ?? ''}
             onChange={(e) => onUpdateSettings({ downloadNote: e.target.value })}
             placeholder="Optional note shown below the exported PNG"
-            className="flex-1 border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700 focus:outline-none focus:border-indigo-400"
+            className="flex-1 border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700 focus:outline-none focus:border-blue-400"
           />
         </label>
         {onOpenGuides && (
           <button
             type="button"
             onClick={onOpenGuides}
-            className="shrink-0 text-xs text-indigo-500 hover:text-indigo-700 transition-colors"
+            className="shrink-0 text-xs text-slate-400 hover:text-slate-600 transition-colors"
           >
             SPC Guides →
           </button>
@@ -372,7 +417,6 @@ function SpcChartCard({
   chartParams: ReturnType<typeof Object>;
 }) {
   void rows;
-  void measure;
   void showIcons;
 
   return (
@@ -381,6 +425,94 @@ function SpcChartCard({
         <h4 className="text-sm font-semibold text-gray-800 mb-1">{label}</h4>
       )}
       <LineChart params={chartParams} />
+      {!compact && <ChartLegend settings={measure.settings} hasTarget={measure.target !== undefined} />}
+    </div>
+  );
+}
+
+function ChartLegend({ settings, hasTarget }: { settings: ChartSettings; hasTarget: boolean }) {
+  const items: { color: string; label: string; dashed?: boolean }[] = [
+    { color: settings.lineColor, label: 'Data' },
+    { color: settings.successColor, label: 'Improving signal' },
+    { color: settings.outlierColor, label: 'Concerning signal' },
+    { color: settings.medianColor, label: 'Mean', dashed: true },
+    { color: settings.confColor, label: 'Control limits', dashed: true },
+  ];
+  if (hasTarget) {
+    items.push({ color: '#2563eb', label: 'Target', dashed: true });
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 pt-3 border-t border-gray-100">
+      {items.map((item) => (
+        <div key={item.label} className="flex items-center gap-1.5">
+          {item.dashed ? (
+            <svg width="20" height="8" className="shrink-0">
+              <line
+                x1="0" y1="4" x2="20" y2="4"
+                stroke={item.color}
+                strokeWidth="2"
+                strokeDasharray="4,2"
+              />
+            </svg>
+          ) : (
+            <span
+              className="w-3 h-3 rounded-full shrink-0"
+              style={{ backgroundColor: item.color }}
+            />
+          )}
+          <span className="text-xs text-gray-500">{item.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SpecialCausePanel({ measure }: { measure: Measure }) {
+  const messages = useMemo(() => {
+    const kind = (['RunChart', 'P', 'C', 'U'] as const).includes(
+      measure.chartKind as 'RunChart' | 'P' | 'C' | 'U',
+    )
+      ? (measure.chartKind as 'RunChart' | 'P' | 'C' | 'U')
+      : ('XmR' as const);
+    const sigmaLevel = measure.settings.sigmaLevel ?? 3;
+    const sourceRows = measure.data
+      .filter((d) => d?.date && d?.value !== '' && d?.value != null)
+      .map((d) => ({
+        date: d.date,
+        value: Number(d.value),
+        denominator:
+          d?.denominator !== undefined && d?.denominator !== ''
+            ? Number(d.denominator)
+            : undefined,
+        recalculate: Boolean(d?.comment?.recalculate),
+      }))
+      .filter((r) => Number.isFinite(r.value));
+    if (sourceRows.length === 0) return [];
+    const { analysis, plottedRows } = analyseSpc(sourceRows, { kind, sigmaLevel });
+    const totalHits =
+      analysis.rules.outsideLimits.length +
+      analysis.rules.runAboveBelowMean.length +
+      analysis.rules.increasingRun.length +
+      analysis.rules.decreasingRun.length;
+    if (totalHits === 0) return [];
+    return describeRules(analysis.rules, plottedRows, analysis.pointLimits);
+  }, [measure.data, measure.chartKind, measure.settings.sigmaLevel]);
+
+  if (messages.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 mt-1">
+      <p className="text-sm font-semibold text-amber-800 mb-2">
+        ⚠ Special cause variation detected
+      </p>
+      <ul className="space-y-1">
+        {messages.map((msg, i) => (
+          <li key={i} className="text-sm text-amber-900 flex gap-2">
+            <span className="shrink-0">•</span>
+            <span>{msg}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

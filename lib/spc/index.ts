@@ -49,6 +49,7 @@ export type { DescriptiveStat, DescriptiveStats } from './descriptive';
 
 export interface AnalyseOptions {
   kind?: AnalysisKind;
+  sigmaLevel?: number;
 }
 
 export interface AnalyseResult {
@@ -70,13 +71,14 @@ export function analyseSpc(
   options: AnalyseOptions = {},
 ): AnalyseResult {
   const kind: AnalysisKind = options.kind ?? 'XmR';
+  const sigmaLevel = options.sigmaLevel ?? 3;
   if (kind === 'P') {
     const { analysis, proportionRows } = analyseProportion(rows);
     return { analysis, plottedRows: proportionRows };
   }
   if (kind === 'C') return analyseCount(rows);
   if (kind === 'U') return analyseRate(rows);
-  const { segments, pointLimits } = computeSegments(rows, kind);
+  const { segments, pointLimits } = computeSegments(rows, kind, sigmaLevel);
   const rules = detectRules(rows, pointLimits, kind);
   return {
     analysis: { kind, segments, pointLimits, rules },
