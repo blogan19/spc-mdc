@@ -93,6 +93,8 @@ export interface ChartSettings {
   showForecast: boolean;
   /** How many periods to project forward when forecast is shown. */
   forecastPeriods: number;
+  /** Optional caption text appended below the chart in exported PNG. */
+  downloadNote?: string;
 }
 
 export type SplitKind = 'none' | 'dayOfWeek' | 'weekdayWeekend' | 'month';

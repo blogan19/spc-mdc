@@ -30,6 +30,7 @@ interface MeasureViewProps {
     justification: { reason: string; confirmedAt: string } | null,
   ) => void;
   onUpdateSettings: (patch: Partial<Measure['settings']>) => void;
+  onOpenGuides?: () => void;
   onUpdateRows: (rows: Measure['data']) => void;
   onUpdateMeasureMeta: (
     patch: Partial<
@@ -48,6 +49,7 @@ export default function MeasureView({
   onUpdateRows,
   onUpdateMeasureMeta,
   onSetupMeasure,
+  onOpenGuides,
 }: MeasureViewProps) {
   const [showWizard, setShowWizard] = useState(false);
   const isPareto = measure.chartKind === 'Pareto';
@@ -103,9 +105,11 @@ export default function MeasureView({
           <Controls
             measure={measure}
             onUpdateMeta={onUpdateMeasureMeta}
+            onUpdateSettings={onUpdateSettings}
             isSplit={isSplit}
             isCategorical={isCategorical}
             onRedo={() => setShowWizard(true)}
+            onOpenGuides={onOpenGuides}
           />
 
           {!isCategorical && <GoalsStrip measure={measure} />}
@@ -163,15 +167,19 @@ export default function MeasureView({
 function Controls({
   measure,
   onUpdateMeta,
+  onUpdateSettings,
   isSplit,
   isCategorical,
   onRedo,
+  onOpenGuides,
 }: {
   measure: Measure;
   onUpdateMeta: MeasureViewProps['onUpdateMeasureMeta'];
+  onUpdateSettings: MeasureViewProps['onUpdateSettings'];
   isSplit: boolean;
   isCategorical: boolean;
   onRedo: () => void;
+  onOpenGuides?: () => void;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
@@ -254,6 +262,28 @@ function Controls({
           Each card below has its own variation icon and limits computed from its stratum.
         </span>
       )}
+
+      <div className="w-full flex items-center gap-2 pt-1 border-t border-gray-100 mt-1">
+        <label className="flex items-center gap-2 flex-1 text-xs text-gray-500">
+          <span className="shrink-0">Caption for download:</span>
+          <input
+            type="text"
+            value={measure.settings.downloadNote ?? ''}
+            onChange={(e) => onUpdateSettings({ downloadNote: e.target.value })}
+            placeholder="Optional note shown below the exported PNG"
+            className="flex-1 border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700 focus:outline-none focus:border-indigo-400"
+          />
+        </label>
+        {onOpenGuides && (
+          <button
+            type="button"
+            onClick={onOpenGuides}
+            className="shrink-0 text-xs text-indigo-500 hover:text-indigo-700 transition-colors"
+          >
+            SPC Guides →
+          </button>
+        )}
+      </div>
     </div>
   );
 }
