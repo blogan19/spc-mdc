@@ -161,12 +161,12 @@ export default function AppearanceForm({ settings, onUpdate, target, onUpdateTar
           </Field>
           <Range
             label="Axis label size"
-            value={settings.axisLabelSize ?? 12}
+            value={settings.axisLabelSize ?? 18}
             min={8}
             max={32}
             step={1}
             onChange={(v) => onUpdate({ axisLabelSize: num(v) })}
-            display={`${settings.axisLabelSize ?? 12} pt`}
+            display={`${settings.axisLabelSize ?? 18} pt`}
           />
         </Grid>
       </Section>
@@ -414,7 +414,7 @@ function ThemeBar({
       <button
         type="button"
         onClick={onRandom}
-        className="text-sm px-3 py-1 rounded border border-purple-300 text-purple-700 bg-purple-50 hover:bg-purple-100"
+        className="text-sm px-3 py-1 rounded border border-slate-300 text-slate-600 bg-slate-50 hover:bg-slate-100"
         title="Replace the visual styling with a randomly picked palette"
       >
         Random theme
