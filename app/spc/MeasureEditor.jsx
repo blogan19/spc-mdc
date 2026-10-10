@@ -18,12 +18,21 @@ export default function MeasureEditor({
   onSetRecalculation,
   onUpdateSettings,
   onUpdateTarget,
+  autoOpenFile = null,
 }) {
   const [tab, setTab] = useState('data'); // 'data' | 'appearance'
   const [recalcDialogRow, setRecalcDialogRow] = useState(null);
   const [csvOpen, setCsvOpen] = useState(false);
   const [pendingDropFile, setPendingDropFile] = useState(null);
   const [dragHover, setDragHover] = useState(false);
+
+  // When a file is passed in from the landing page drop zone, auto-open import
+  useEffect(() => {
+    if (autoOpenFile) {
+      setPendingDropFile(autoOpenFile);
+      setCsvOpen(true);
+    }
+  }, [autoOpenFile]);
 
   const { data, settings } = measure;
 
