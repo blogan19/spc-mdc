@@ -51,6 +51,7 @@ const LineChart = ({ params }) => {
     backgroundColor = '#ffffff',
     showForecast = false,
     forecastPeriods = 6,
+    downloadNote = '',
     onExportCsv,
   } = params;
 
@@ -784,8 +785,6 @@ const LineChart = ({ params }) => {
   const exportPng = () => {
     const svgEl = svgRef.current;
     if (!svgEl) return;
-    // Clone with explicit width/height so canvas drawImage gets a 1:1
-    // raster regardless of how the live SVG is scaled in the DOM.
     const clone = svgEl.cloneNode(true);
     clone.setAttribute('width', String(width));
     clone.setAttribute('height', String(height));
@@ -794,13 +793,23 @@ const LineChart = ({ params }) => {
     const url = URL.createObjectURL(svgBlob);
     const img = new Image();
     img.onload = () => {
+      const NOTE_H = downloadNote?.trim() ? 48 : 0;
       const canvas = document.createElement('canvas');
       canvas.width = width;
-      canvas.height = height;
+      canvas.height = height + NOTE_H;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
+      if (NOTE_H) {
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, height, width, NOTE_H);
+        ctx.fillStyle = '#334155';
+        ctx.font = '13px Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(downloadNote.trim(), width / 2, height + NOTE_H / 2);
+      }
       URL.revokeObjectURL(url);
       canvas.toBlob((blob) => {
         if (!blob) return;

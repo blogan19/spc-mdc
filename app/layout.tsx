@@ -15,9 +15,9 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "SPC — Statistical Process Control for QI",
+  title: "SPC — MDC | Statistical Process Control Charts",
   description:
-    "Interactive SPC and run charts for quality-improvement projects.",
+    "Free SPC chart builder following NHS Making Data Count methodology. Build XmR, run, P, C and U charts. Save as JSON or export as PNG.",
 };
 
 export default function RootLayout({
