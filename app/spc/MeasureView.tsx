@@ -32,6 +32,7 @@ interface MeasureViewProps {
   onUpdateSettings: (patch: Partial<Measure['settings']>) => void;
   onOpenGuides?: () => void;
   pendingImportFile?: File | null;
+  bypassSetup?: boolean;
   onUpdateRows: (rows: Measure['data']) => void;
   onUpdateMeasureMeta: (
     patch: Partial<
@@ -52,13 +53,13 @@ export default function MeasureView({
   onSetupMeasure,
   onOpenGuides,
   pendingImportFile,
+  bypassSetup,
 }: MeasureViewProps) {
   const [showWizard, setShowWizard] = useState(false);
   const isPareto = measure.chartKind === 'Pareto';
   const isFunnel = measure.chartKind === 'Funnel';
   const isCategorical = isPareto || isFunnel;
-  // Skip the setup wizard when a CSV is being imported from the landing page
-  const needsSetup = !isCategorical && measure.data.length === 0 && !pendingImportFile;
+  const needsSetup = !isCategorical && measure.data.length === 0 && !pendingImportFile && !bypassSetup;
 
   const strata = useMemo(
     () =>
