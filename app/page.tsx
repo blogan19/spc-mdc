@@ -61,7 +61,6 @@ function fileExt(name: string) {
 export default function HomePage() {
   const [measure, setMeasure] = useState<Measure | null>(null);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
-  const [bypassSetup, setBypassSetup] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [dropHover, setDropHover] = useState(false);
   const openJsonRef = useRef<HTMLInputElement>(null);
@@ -79,7 +78,6 @@ export default function HomePage() {
         const parsed = JSON.parse(text) as Measure;
         if (!parsed.id || !Array.isArray(parsed.data)) throw new Error();
         setPendingImportFile(null);
-        setBypassSetup(false);
         setMeasure(parsed);
       } catch {
         window.alert('Could not open file — make sure it is a valid SPC chart JSON.');
@@ -89,7 +87,6 @@ export default function HomePage() {
 
   const loadCsvFile = (file: File) => {
     const m = newMeasure();
-    setBypassSetup(false);
     setPendingImportFile(file);
     setMeasure(m);
   };
@@ -150,7 +147,7 @@ export default function HomePage() {
               {/* Tile 1 — Enter my own data */}
               <button
                 type="button"
-                onClick={() => { setBypassSetup(true); setMeasure(newMeasure()); }}
+                onClick={() => setMeasure(newMeasure())}
                 className="group text-left rounded-2xl p-6 bg-indigo-600/90 hover:bg-indigo-500 border border-indigo-500 shadow-lg hover:shadow-indigo-900/40 hover:shadow-xl transition-all"
               >
                 <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mb-4">
@@ -252,7 +249,7 @@ export default function HomePage() {
         <header className="bg-slate-900/80 backdrop-blur border-b border-slate-700/60 px-3 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-10">
           <button
             type="button"
-            onClick={() => { setMeasure(null); setPendingImportFile(null); setBypassSetup(false); }}
+            onClick={() => { setMeasure(null); setPendingImportFile(null); }}
             className="text-lg font-bold tracking-tight"
           >
             <span className="text-white">SPC</span>
@@ -288,7 +285,6 @@ export default function HomePage() {
                 if (window.confirm('Start a new chart? Make sure you have saved your current work first.')) {
                   setMeasure(newMeasure());
                   setPendingImportFile(null);
-                  setBypassSetup(false);
                 }
               }}
               className="px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-800 transition-colors"
@@ -301,7 +297,6 @@ export default function HomePage() {
         <MeasureView
           measure={measure}
           pendingImportFile={pendingImportFile}
-          bypassSetup={bypassSetup}
           onOpenGuides={() => setGuideOpen(true)}
           onUpdateRowField={(rowIndex, field, value) =>
             op((p) => updateRowField(p, measure.id, rowIndex, field as RowField, value))

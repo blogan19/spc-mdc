@@ -32,7 +32,6 @@ interface MeasureViewProps {
   onUpdateSettings: (patch: Partial<Measure['settings']>) => void;
   onOpenGuides?: () => void;
   pendingImportFile?: File | null;
-  bypassSetup?: boolean;
   onUpdateRows: (rows: Measure['data']) => void;
   onUpdateMeasureMeta: (
     patch: Partial<
@@ -53,13 +52,12 @@ export default function MeasureView({
   onSetupMeasure,
   onOpenGuides,
   pendingImportFile,
-  bypassSetup,
 }: MeasureViewProps) {
   const [showWizard, setShowWizard] = useState(false);
   const isPareto = measure.chartKind === 'Pareto';
   const isFunnel = measure.chartKind === 'Funnel';
   const isCategorical = isPareto || isFunnel;
-  const needsSetup = !isCategorical && measure.data.length === 0 && !pendingImportFile && !bypassSetup;
+  const needsSetup = !isCategorical && measure.data.length === 0 && !pendingImportFile;
 
   const strata = useMemo(
     () =>
@@ -92,6 +90,7 @@ export default function MeasureView({
             splitBy: measure.splitBy,
           } : undefined}
           initialRows={showWizard ? measure.data : undefined}
+          initialMode={!showWizard ? 'empty' : undefined}
         />
       </div>
     );
