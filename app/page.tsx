@@ -63,6 +63,7 @@ export default function HomePage() {
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const [guideOpen, setGuideOpen] = useState(false);
   const [dropHover, setDropHover] = useState(false);
+  const [displayMode, setDisplayMode] = useState(false);
   const openJsonRef = useRef<HTMLInputElement>(null);
   const openCsvRef = useRef<HTMLInputElement>(null);
   const openWorkspaceRef = useRef<HTMLInputElement>(null);
@@ -249,7 +250,7 @@ export default function HomePage() {
         <header className="bg-indigo-600/90 border-b border-indigo-500 px-3 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-10">
           <button
             type="button"
-            onClick={() => { setMeasure(null); setPendingImportFile(null); }}
+            onClick={() => { setMeasure(null); setPendingImportFile(null); setDisplayMode(false); }}
             className="text-lg font-bold tracking-tight"
           >
             <span className="text-white">SPC</span>
@@ -257,45 +258,67 @@ export default function HomePage() {
           </button>
 
           <div className="ml-auto flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setGuideOpen(true)}
-              className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
-            >
-              Guides
-            </button>
-            <button
-              type="button"
-              onClick={() => downloadMeasure(measure)}
-              disabled={measure.data.length === 0}
-              className="px-3 py-1.5 rounded-lg bg-white text-indigo-700 text-sm font-medium hover:bg-white/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={() => openWorkspaceRef.current?.click()}
-              className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
-            >
-              Open…
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm('Start a new chart? Make sure you have saved your current work first.')) {
-                  setMeasure(newMeasure());
-                  setPendingImportFile(null);
-                }
-              }}
-              className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
-            >
-              New
-            </button>
+            {displayMode ? (
+              <button
+                type="button"
+                onClick={() => setDisplayMode(false)}
+                className="px-3 py-1.5 rounded-lg bg-white text-indigo-700 text-sm font-medium hover:bg-white/90 transition-colors"
+              >
+                ← Edit
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setGuideOpen(true)}
+                  className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  Guides
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadMeasure(measure)}
+                  disabled={measure.data.length === 0}
+                  className="px-3 py-1.5 rounded-lg bg-white text-indigo-700 text-sm font-medium hover:bg-white/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openWorkspaceRef.current?.click()}
+                  className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  Open…
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Start a new chart? Make sure you have saved your current work first.')) {
+                      setMeasure(newMeasure());
+                      setPendingImportFile(null);
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
+                >
+                  New
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDisplayMode(true)}
+                  disabled={measure.data.length === 0}
+                  className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  title="Hide controls and show just the chart"
+                >
+                  Display
+                </button>
+              </>
+            )}
           </div>
         </header>
 
         <MeasureView
           measure={measure}
+          displayMode={displayMode}
           pendingImportFile={pendingImportFile}
           onClose={() => { setMeasure(null); setPendingImportFile(null); }}
           onOpenGuides={() => setGuideOpen(true)}

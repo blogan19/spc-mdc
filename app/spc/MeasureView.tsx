@@ -43,6 +43,7 @@ interface MeasureViewProps {
   ) => void;
   onSetupMeasure: (submit: SetupSubmit) => void;
   onClose?: () => void;
+  displayMode?: boolean;
 }
 
 export default function MeasureView({
@@ -57,6 +58,7 @@ export default function MeasureView({
   onOpenGuides,
   pendingImportFile,
   onClose,
+  displayMode = false,
 }: MeasureViewProps) {
   const [showWizard, setShowWizard] = useState(false);
   const isPareto = measure.chartKind === 'Pareto';
@@ -110,15 +112,17 @@ export default function MeasureView({
     <>
       <div className="px-3 sm:px-6 mt-3">
         <div className="mx-auto w-full max-w-7xl bg-neutral-100 rounded-xl shadow-lg ring-1 ring-neutral-200 p-4 sm:p-6">
-          <Controls
-            measure={measure}
-            onUpdateMeta={onUpdateMeasureMeta}
-            onUpdateSettings={onUpdateSettings}
-            isSplit={isSplit}
-            isCategorical={isCategorical}
-            onRedo={() => setShowWizard(true)}
-            onOpenGuides={onOpenGuides}
-          />
+          {!displayMode && (
+            <Controls
+              measure={measure}
+              onUpdateMeta={onUpdateMeasureMeta}
+              onUpdateSettings={onUpdateSettings}
+              isSplit={isSplit}
+              isCategorical={isCategorical}
+              onRedo={() => setShowWizard(true)}
+              onOpenGuides={onOpenGuides}
+            />
+          )}
 
           {!isCategorical && <GoalsStrip measure={measure} />}
 
@@ -127,7 +131,7 @@ export default function MeasureView({
               label=""
               rows={strata[0]?.rows ?? []}
               measure={measure}
-              onUpdateRowField={onUpdateRowFieldForChart}
+              onUpdateRowField={!displayMode ? onUpdateRowFieldForChart : undefined}
               compact={false}
               showIcons
             />
@@ -139,7 +143,7 @@ export default function MeasureView({
                   label={s.label}
                   rows={s.rows}
                   measure={measure}
-                  onUpdateRowField={onUpdateRowFieldForChart}
+                  onUpdateRowField={!displayMode ? onUpdateRowFieldForChart : undefined}
                   compact
                   showIcons
                 />
@@ -149,7 +153,7 @@ export default function MeasureView({
         </div>
       </div>
 
-      {!isCategorical && (
+      {!isCategorical && !displayMode && (
         <div className="px-3 sm:px-6 mt-2">
           <div className="mx-auto w-full max-w-7xl bg-neutral-100 rounded-xl shadow-lg ring-1 ring-neutral-200 p-4 sm:p-6">
             <label className="block text-xs text-slate-400 mb-1">Chart description</label>
@@ -164,13 +168,15 @@ export default function MeasureView({
         </div>
       )}
 
-      <div className="px-3 sm:px-6 mt-3">
-        <div className="mx-auto w-full max-w-7xl">
-          <DescriptiveStats measure={measure} />
+      {!displayMode && (
+        <div className="px-3 sm:px-6 mt-3">
+          <div className="mx-auto w-full max-w-7xl">
+            <DescriptiveStats measure={measure} />
+          </div>
         </div>
-      </div>
+      )}
 
-      <div className="px-3 sm:px-6 mt-3 mb-6">
+      {!displayMode && <div className="px-3 sm:px-6 mt-3 mb-6">
         <div className="mx-auto w-full max-w-7xl bg-neutral-100 rounded-xl shadow-lg ring-1 ring-neutral-200 p-4 sm:p-8">
           <MeasureEditor
             measure={measure}
@@ -183,7 +189,7 @@ export default function MeasureView({
             autoOpenFile={pendingImportFile ?? null}
           />
         </div>
-      </div>
+      </div>}
     </>
   );
 }
