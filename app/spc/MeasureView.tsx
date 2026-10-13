@@ -42,6 +42,7 @@ interface MeasureViewProps {
     >,
   ) => void;
   onSetupMeasure: (submit: SetupSubmit) => void;
+  onClose?: () => void;
 }
 
 export default function MeasureView({
@@ -55,6 +56,7 @@ export default function MeasureView({
   onSetupMeasure,
   onOpenGuides,
   pendingImportFile,
+  onClose,
 }: MeasureViewProps) {
   const [showWizard, setShowWizard] = useState(false);
   const isPareto = measure.chartKind === 'Pareto';
@@ -74,13 +76,13 @@ export default function MeasureView({
 
   if (needsSetup || showWizard) {
     return (
-      <div className="px-3 sm:px-6 py-6 sm:py-10">
+      <div className="min-h-[calc(100vh-56px)] flex items-center px-3 sm:px-6 py-8">
         <DateSetupForm
           onApply={(submit) => {
             onSetupMeasure(submit);
             setShowWizard(false);
           }}
-          onCancel={showWizard ? () => setShowWizard(false) : undefined}
+          onCancel={showWizard ? () => setShowWizard(false) : onClose}
           initialValues={showWizard ? {
             name: measure.name,
             description: measure.settings.description ?? '',
@@ -107,7 +109,7 @@ export default function MeasureView({
   return (
     <>
       <div className="px-3 sm:px-6 mt-3">
-        <div className="mx-auto w-full max-w-7xl bg-white rounded-xl shadow-lg ring-1 ring-gray-200 p-4 sm:p-6">
+        <div className="mx-auto w-full max-w-7xl bg-white/80 rounded-xl shadow-lg ring-1 ring-slate-300 p-4 sm:p-6">
           <Controls
             measure={measure}
             onUpdateMeta={onUpdateMeasureMeta}
@@ -150,6 +152,7 @@ export default function MeasureView({
       {!isCategorical && (
         <div className="px-3 sm:px-6 mt-2">
           <div className="mx-auto w-full max-w-7xl">
+            <label className="block text-xs text-slate-400 mb-1">Chart description</label>
             <textarea
               value={measure.settings.chartNote ?? ''}
               onChange={(e) => onUpdateSettings({ chartNote: e.target.value })}
@@ -161,14 +164,6 @@ export default function MeasureView({
         </div>
       )}
 
-      {!isCategorical && (
-        <div className="px-3 sm:px-6 mt-1">
-          <div className="mx-auto w-full max-w-7xl">
-            <SpecialCausePanel measure={measure} />
-          </div>
-        </div>
-      )}
-
       <div className="px-3 sm:px-6 mt-3">
         <div className="mx-auto w-full max-w-7xl">
           <DescriptiveStats measure={measure} />
@@ -176,7 +171,7 @@ export default function MeasureView({
       </div>
 
       <div className="px-3 sm:px-6 mt-3 mb-6">
-        <div className="mx-auto w-full max-w-7xl bg-white rounded-xl shadow-lg ring-1 ring-gray-200 p-4 sm:p-8">
+        <div className="mx-auto w-full max-w-7xl bg-white/80 rounded-xl shadow-lg ring-1 ring-slate-300 p-4 sm:p-8">
           <MeasureEditor
             measure={measure}
             onUpdateRowField={onUpdateRowField}
@@ -308,18 +303,8 @@ function Controls({
         </span>
       )}
 
-      <div className="w-full flex items-center gap-2 pt-1 border-t border-gray-100 mt-1">
-        <label className="flex items-center gap-2 flex-1 text-xs text-gray-500">
-          <span className="shrink-0">Caption for download:</span>
-          <input
-            type="text"
-            value={measure.settings.downloadNote ?? ''}
-            onChange={(e) => onUpdateSettings({ downloadNote: e.target.value })}
-            placeholder="Optional note shown below the exported PNG"
-            className="flex-1 border border-gray-200 rounded px-2 py-0.5 text-xs text-gray-700 focus:outline-none focus:border-blue-400"
-          />
-        </label>
-        {onOpenGuides && (
+      {onOpenGuides && (
+        <div className="w-full flex justify-end pt-1 border-t border-gray-100 mt-1">
           <button
             type="button"
             onClick={onOpenGuides}
@@ -327,8 +312,8 @@ function Controls({
           >
             SPC Guides →
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -425,6 +410,10 @@ function SpcChartCard({
         <h4 className="text-sm font-semibold text-gray-800 mb-1">{label}</h4>
       )}
       <LineChart params={chartParams} />
+      {!compact && measure.settings.chartNote?.trim() && (
+        <p className="text-sm text-slate-500 italic px-1 mt-1">{measure.settings.chartNote}</p>
+      )}
+      {!compact && <SpecialCausePanel measure={measure} />}
       {!compact && <ChartLegend settings={measure.settings} hasTarget={measure.target !== undefined} />}
     </div>
   );

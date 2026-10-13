@@ -179,8 +179,8 @@ export default function DateSetupForm({ onApply, onCancel, initialValues, initia
 
   const back = () => {
     if (step <= 1) {
-      if (initialValues) {
-        // In edit mode, Back from step 1 exits the wizard.
+      if (initialValues || initialMode) {
+        // Edit mode or pre-selected mode: Back exits the wizard entirely.
         onCancel?.();
       } else {
         setMode(null);
@@ -536,14 +536,13 @@ export default function DateSetupForm({ onApply, onCancel, initialValues, initia
 
   return (
     <div className="bg-white rounded-xl shadow-xl ring-1 ring-indigo-100 max-w-5xl mx-auto overflow-hidden">
-      {/* Colourful gradient header */}
-      <div className="bg-gradient-to-br from-indigo-600 via-blue-600 to-violet-600 px-5 sm:px-7 pt-5 pb-5">
+      <div className="bg-slate-50 border-b border-gray-200 px-5 sm:px-7 pt-5 pb-5">
         <div className="flex items-center justify-between mb-3">
           {step > 0 ? (
             <button
               type="button"
               onClick={back}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-100 hover:text-white bg-white/10 hover:bg-white/20 rounded-md px-3 py-1.5 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md px-3 py-1.5 transition-colors"
             >
               <span aria-hidden>←</span>
               Back
@@ -553,7 +552,7 @@ export default function DateSetupForm({ onApply, onCancel, initialValues, initia
             <button
               type="button"
               onClick={onCancel}
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-100 hover:text-white bg-white/10 hover:bg-white/20 rounded-md px-3 py-1.5 transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-md px-3 py-1.5 transition-colors"
             >
               Back to chart
             </button>
@@ -561,11 +560,11 @@ export default function DateSetupForm({ onApply, onCancel, initialValues, initia
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-xl font-bold text-gray-900">
               Create a new SPC chart
             </h2>
             {totalSteps > 0 && (
-              <p className="text-xs text-indigo-200 mt-1">
+              <p className="text-xs text-gray-500 mt-1">
                 Step {step} of {totalSteps}
                 {' — '}
                 {stepLabel(mode, step)}
@@ -631,7 +630,7 @@ function StepDots({ total, current }: { total: number; current: number }) {
         <span
           key={n}
           className={`h-2 w-6 rounded-full transition-colors ${
-            n <= current ? 'bg-white' : 'bg-white/30'
+            n <= current ? 'bg-indigo-500' : 'bg-gray-300'
           }`}
           aria-hidden
         />
@@ -779,10 +778,87 @@ function DetailsStep({
 
 // --- Step 2 (empty): cadence + range -------------------------------------
 
-function parseISODate(text: string): string | null {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return null;
-  const d = new Date(text + 'T00:00:00');
-  return isNaN(d.getTime()) ? null : text;
+const MONTH_MAP: Record<string, string> = {
+  jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+  jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12',
+};
+
+function parseFlexibleDate(raw: string): string | null {
+  const t = raw.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) {
+    const d = new Date(t + 'T00:00:00');
+    return isNaN(d.getTime()) ? null : t;
+  }
+  const ymMatch = t.match(/^(\d{4})[-\/](\d{1,2})$/);
+  if (ymMatch) {
+    const iso = `${ymMatch[1]}-${ymMatch[2].padStart(2, '0')}-01`;
+    const d = new Date(iso + 'T00:00:00');
+    return isNaN(d.getTime()) ? null : iso;
+  }
+  const ymdSlash = t.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/);
+  if (ymdSlash) {
+    const iso = `${ymdSlash[1]}-${ymdSlash[2].padStart(2, '0')}-${ymdSlash[3].padStart(2, '0')}`;
+    const d = new Date(iso + 'T00:00:00');
+    return isNaN(d.getTime()) ? null : iso;
+  }
+  // DD/MM/YYYY (UK convention)
+  const dmyMatch = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmyMatch) {
+    const iso = `${dmyMatch[3]}-${dmyMatch[2].padStart(2, '0')}-${dmyMatch[1].padStart(2, '0')}`;
+    const d = new Date(iso + 'T00:00:00');
+    return isNaN(d.getTime()) ? null : iso;
+  }
+  const monYear = t.match(/^([a-zA-Z]{3,9})\s+(\d{4})$/);
+  if (monYear) {
+    const m = MONTH_MAP[monYear[1].toLowerCase().slice(0, 3)];
+    if (m) return `${monYear[2]}-${m}-01`;
+  }
+  const dayMonYear = t.match(/^(\d{1,2})\s+([a-zA-Z]{3,9})\s+(\d{4})$/);
+  if (dayMonYear) {
+    const m = MONTH_MAP[dayMonYear[2].toLowerCase().slice(0, 3)];
+    if (m) {
+      const iso = `${dayMonYear[3]}-${m}-${dayMonYear[1].padStart(2, '0')}`;
+      const d = new Date(iso + 'T00:00:00');
+      return isNaN(d.getTime()) ? null : iso;
+    }
+  }
+  return null;
+}
+
+type Cadence = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+function detectCadence(sortedDates: string[]): { cadence: Cadence; label: string } | null {
+  if (sortedDates.length < 2) return null;
+  const gaps: number[] = [];
+  for (let i = 1; i < sortedDates.length; i++) {
+    const d1 = new Date(sortedDates[i - 1] + 'T00:00:00').getTime();
+    const d2 = new Date(sortedDates[i] + 'T00:00:00').getTime();
+    gaps.push((d2 - d1) / 86400000);
+  }
+  const sorted = [...gaps].sort((a, b) => a - b);
+  const median = sorted[Math.floor(sorted.length / 2)];
+  if (sorted[0] <= 0) return null;
+  if (sorted[sorted.length - 1] / sorted[0] > 2.5) return null;
+  let cadence: Cadence;
+  if (median <= 3) cadence = 'daily';
+  else if (median <= 10) cadence = 'weekly';
+  else if (median <= 60) cadence = 'monthly';
+  else cadence = 'yearly';
+  return { cadence, label: cadence };
+}
+
+function fillDateSeries(startISO: string, endISO: string, cadence: Cadence): string[] {
+  const result: string[] = [];
+  const end = new Date(endISO + 'T00:00:00');
+  const current = new Date(startISO + 'T00:00:00');
+  while (current <= end && result.length < 1000) {
+    result.push(current.toISOString().slice(0, 10));
+    if (cadence === 'daily') current.setDate(current.getDate() + 1);
+    else if (cadence === 'weekly') current.setDate(current.getDate() + 7);
+    else if (cadence === 'monthly') current.setMonth(current.getMonth() + 1);
+    else current.setFullYear(current.getFullYear() + 1);
+  }
+  return result;
 }
 
 function EmptyRangeStep({
@@ -831,20 +907,34 @@ function EmptyRangeStep({
 
   const { validDates, invalidLines } = useMemo(() => {
     if (entryMode !== 'manual') return { validDates: [] as string[], invalidLines: [] as string[] };
-    const lines = manualText.split('\n').map((l) => l.trim()).filter(Boolean);
-    const valid: string[] = [];
-    const invalid: string[] = [];
-    for (const line of lines) {
-      if (parseISODate(line)) valid.push(line);
-      else invalid.push(line);
-    }
-    return { validDates: [...new Set(valid)].sort(), invalidLines: invalid };
+    const tokens = manualText.split(/[\n,\t;]+/).map((l) => l.trim()).filter(Boolean);
+    // Try to parse as a date for auto-fill; if not a date, use the raw label as-is
+    const parsed = tokens.map((token) => parseFlexibleDate(token) ?? token);
+    const unique = [...new Set(parsed)];
+    // Only sort if every entry is an ISO date; otherwise preserve the user's order
+    const allDates = unique.every((v) => /^\d{4}-\d{2}-\d{2}$/.test(v));
+    return { validDates: allDates ? unique.sort() : unique, invalidLines: [] as string[] };
   }, [entryMode, manualText]);
 
   const manualRows = useMemo<MeasureRow[]>(
     () => validDates.map((date) => ({ date, value: '', comment: { title: '', label: '', recalculate: false } })),
     [validDates],
   );
+
+  const detectedCadence = useMemo(
+    () => (validDates.length >= 2 ? detectCadence(validDates) : null),
+    [validDates],
+  );
+
+  const autoFillDates = useMemo(() => {
+    if (!detectedCadence || validDates.length < 2) return null;
+    return fillDateSeries(validDates[0], validDates[validDates.length - 1], detectedCadence.cadence);
+  }, [detectedCadence, validDates]);
+
+  const handleAutoFill = () => {
+    if (!autoFillDates) return;
+    setManualText(autoFillDates.join('\n'));
+  };
 
   const datesValid = entryMode === 'range' ? rows.length > 0 : manualRows.length > 0;
   const firstLabel = rows.length > 0 ? formatDateForAxis(rows[0].date, increment) : '';
@@ -872,14 +962,18 @@ function EmptyRangeStep({
     else if (e.key === 'ArrowUp') { e.preventDefault(); startRef.current?.focus(); }
   };
 
-  // Auto-insert hyphens when typing at column 4 or 7 of the current line
+  // Auto-insert hyphens when typing at column 4 or 7 of the current token (YYYY-MM-DD)
   const handleManualKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (!/^[0-9]$/.test(e.key)) return;
     const ta = e.currentTarget;
     const pos = ta.selectionStart ?? 0;
     const val = ta.value;
-    const lineStart = val.lastIndexOf('\n', pos - 1) + 1;
-    const col = pos - lineStart;
+    let tokenStart = 0;
+    for (let i = pos - 1; i >= 0; i--) {
+      if ('\n,\t;'.includes(val[i])) { tokenStart = i + 1; break; }
+    }
+    while (tokenStart < pos && val[tokenStart] === ' ') tokenStart++;
+    const col = pos - tokenStart;
     if (col === 4 || col === 7) {
       e.preventDefault();
       const next = val.slice(0, pos) + '-' + e.key + val.slice(pos);
@@ -930,7 +1024,7 @@ function EmptyRangeStep({
         </button>
       </div>
 
-      <IncrementGrid current={increment} onChange={setIncrement} />
+      {entryMode === 'range' && <IncrementGrid current={increment} onChange={setIncrement} />}
 
       {entryMode === 'range' && (
         <div className="mt-5">
@@ -970,7 +1064,7 @@ function EmptyRangeStep({
                 value={startText}
                 onChange={(e) => {
                   setStartText(e.target.value);
-                  const iso = parseISODate(e.target.value);
+                  const iso = parseFlexibleDate(e.target.value);
                   if (iso) setStartISO(iso);
                 }}
                 onKeyDown={handleStartKey}
@@ -987,7 +1081,7 @@ function EmptyRangeStep({
                 value={endText}
                 onChange={(e) => {
                   setEndText(e.target.value);
-                  const iso = parseISODate(e.target.value);
+                  const iso = parseFlexibleDate(e.target.value);
                   if (iso) setEndISO(iso);
                 }}
                 onKeyDown={handleEndKey}
@@ -1020,8 +1114,8 @@ function EmptyRangeStep({
       {entryMode === 'manual' && (
         <div className="mt-5">
           <label htmlFor="manual-dates" className="block text-sm font-medium text-gray-700 mb-1.5">
-            One date per line{' '}
-            <span className="font-normal text-gray-400">(YYYY-MM-DD)</span>
+            X-axis labels{' '}
+            <span className="font-normal text-gray-400">— one per line, or comma/tab separated</span>
           </label>
           <textarea
             id="manual-dates"
@@ -1029,21 +1123,30 @@ function EmptyRangeStep({
             value={manualText}
             onChange={(e) => setManualText(e.target.value)}
             onKeyDown={handleManualKeyDown}
-            placeholder={'2024-01-01\n2024-02-01\n2024-03-01'}
+            placeholder={'Week 1\nWeek 2\nWeek 3\n\nor: Jan 2024, Feb 2024, Mar 2024'}
             rows={8}
             className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-blue-300"
             autoFocus
           />
+          {detectedCadence && autoFillDates && autoFillDates.length > validDates.length && (
+            <div className="mt-2 flex items-center gap-3 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2">
+              <span className="text-sm text-blue-800 flex-1">
+                Looks like <strong>{detectedCadence.label}</strong> data —{' '}
+                auto-fill <strong>{autoFillDates.length}</strong> dates from{' '}
+                <strong>{validDates[0]}</strong> to <strong>{validDates[validDates.length - 1]}</strong>?
+              </span>
+              <button
+                type="button"
+                onClick={handleAutoFill}
+                className="shrink-0 px-3 py-1 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors"
+              >
+                Auto-fill →
+              </button>
+            </div>
+          )}
           {validDates.length > 0 && (
             <p className="mt-1.5 text-sm text-green-700 font-medium">
-              {validDates.length} date{validDates.length === 1 ? '' : 's'} ready.
-            </p>
-          )}
-          {invalidLines.length > 0 && (
-            <p className="mt-1 text-xs text-amber-700">
-              {invalidLines.length} line{invalidLines.length === 1 ? '' : 's'} couldn&rsquo;t be parsed:{' '}
-              {invalidLines.slice(0, 3).map((l) => `"${l}"`).join(', ')}
-              {invalidLines.length > 3 ? '…' : ''}
+              {validDates.length} value{validDates.length === 1 ? '' : 's'} ready.
             </p>
           )}
         </div>
@@ -2074,6 +2177,10 @@ function DetailsFields({
   const yRef = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
 
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, []);
+
   // Order: title(0) → x(1) → y(2) → description(3)
   const focusIndex = (i: number) => {
     const els = [titleRef.current, xRef.current, yRef.current, descRef.current] as Array<HTMLElement | null>;
@@ -2083,7 +2190,8 @@ function DetailsFields({
   const navKeyDown = (i: number, isTextarea = false) =>
     (e: React.KeyboardEvent) => {
       if (e.key === 'ArrowDown' || (!isTextarea && e.key === 'Enter')) {
-        if (i < 3) { e.preventDefault(); focusIndex(i + 1); }
+        if (i < 2) { e.preventDefault(); focusIndex(i + 1); }
+        // Skip description (3) — jump straight to Continue
         else if (onDownFromLast) { e.preventDefault(); onDownFromLast(); }
       } else if (e.key === 'ArrowUp') {
         if (i > 0) { e.preventDefault(); focusIndex(i - 1); }

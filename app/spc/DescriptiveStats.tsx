@@ -67,7 +67,7 @@ export default function DescriptiveStats({ measure }: Props) {
 
   return (
     <>
-      <section className="border border-gray-200 rounded-lg bg-white">
+      <section className="border border-gray-200 rounded-lg bg-slate-50">
         <header className="flex items-center justify-between px-4 py-2 border-b border-gray-100">
           <h3 className="text-sm font-semibold text-gray-800">Quick stats</h3>
           {result.ok && (

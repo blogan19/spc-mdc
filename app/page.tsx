@@ -219,7 +219,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => setGuideOpen(true)}
-              className="mt-10 w-full text-center text-sm text-slate-600 hover:text-indigo-400 transition-colors"
+              className="mt-10 w-full text-center text-sm text-white/60 hover:text-white transition-colors"
             >
               What is SPC? Read the guides →
             </button>
@@ -246,21 +246,21 @@ export default function HomePage() {
           }}
         />
 
-        <header className="bg-slate-900/80 backdrop-blur border-b border-slate-700/60 px-3 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-10">
+        <header className="bg-indigo-600/90 border-b border-indigo-500 px-3 sm:px-6 py-3 flex items-center gap-3 sticky top-0 z-10">
           <button
             type="button"
             onClick={() => { setMeasure(null); setPendingImportFile(null); }}
             className="text-lg font-bold tracking-tight"
           >
             <span className="text-white">SPC</span>
-            <span className="text-slate-500 font-light"> — MDC</span>
+            <span className="text-white/60 font-light"> — MDC</span>
           </button>
 
           <div className="ml-auto flex items-center gap-2">
             <button
               type="button"
               onClick={() => setGuideOpen(true)}
-              className="px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-800 hover:border-indigo-400 hover:text-indigo-300 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
             >
               Guides
             </button>
@@ -268,14 +268,14 @@ export default function HomePage() {
               type="button"
               onClick={() => downloadMeasure(measure)}
               disabled={measure.data.length === 0}
-              className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 rounded-lg bg-white text-indigo-700 text-sm font-medium hover:bg-white/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Save
             </button>
             <button
               type="button"
               onClick={() => openWorkspaceRef.current?.click()}
-              className="px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
             >
               Open…
             </button>
@@ -287,7 +287,7 @@ export default function HomePage() {
                   setPendingImportFile(null);
                 }
               }}
-              className="px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 text-sm hover:bg-slate-800 transition-colors"
+              className="px-3 py-1.5 rounded-lg border border-white/30 text-white/80 text-sm hover:bg-white/10 hover:text-white transition-colors"
             >
               New
             </button>
@@ -297,6 +297,7 @@ export default function HomePage() {
         <MeasureView
           measure={measure}
           pendingImportFile={pendingImportFile}
+          onClose={() => { setMeasure(null); setPendingImportFile(null); }}
           onOpenGuides={() => setGuideOpen(true)}
           onUpdateRowField={(rowIndex, field, value) =>
             op((p) => updateRowField(p, measure.id, rowIndex, field as RowField, value))
