@@ -109,7 +109,7 @@ export default function MeasureView({
   return (
     <>
       <div className="px-3 sm:px-6 mt-3">
-        <div className="mx-auto w-full max-w-7xl bg-white/80 rounded-xl shadow-lg ring-1 ring-slate-300 p-4 sm:p-6">
+        <div className="mx-auto w-full max-w-7xl bg-neutral-100 rounded-xl shadow-lg ring-1 ring-neutral-200 p-4 sm:p-6">
           <Controls
             measure={measure}
             onUpdateMeta={onUpdateMeasureMeta}
@@ -151,14 +151,14 @@ export default function MeasureView({
 
       {!isCategorical && (
         <div className="px-3 sm:px-6 mt-2">
-          <div className="mx-auto w-full max-w-7xl">
+          <div className="mx-auto w-full max-w-7xl bg-neutral-100 rounded-xl shadow-lg ring-1 ring-neutral-200 p-4 sm:p-6">
             <label className="block text-xs text-slate-400 mb-1">Chart description</label>
             <textarea
               value={measure.settings.chartNote ?? ''}
               onChange={(e) => onUpdateSettings({ chartNote: e.target.value })}
               placeholder="Add a description for this chart…"
               rows={2}
-              className="bg-white/5 border border-slate-700 rounded-lg text-slate-300 text-sm p-3 w-full resize-y placeholder:text-slate-600"
+              className="bg-white border border-gray-200 rounded-lg text-gray-700 text-sm p-3 w-full resize-y placeholder:text-gray-400 focus:outline-none focus:border-blue-300"
             />
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function MeasureView({
       </div>
 
       <div className="px-3 sm:px-6 mt-3 mb-6">
-        <div className="mx-auto w-full max-w-7xl bg-white/80 rounded-xl shadow-lg ring-1 ring-slate-300 p-4 sm:p-8">
+        <div className="mx-auto w-full max-w-7xl bg-neutral-100 rounded-xl shadow-lg ring-1 ring-neutral-200 p-4 sm:p-8">
           <MeasureEditor
             measure={measure}
             onUpdateRowField={onUpdateRowField}
