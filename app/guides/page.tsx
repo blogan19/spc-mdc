@@ -3,14 +3,14 @@ import type { Metadata } from 'next';
 import { ARTICLES } from '@/lib/guides/articles';
 
 export const metadata: Metadata = {
-  title: 'SPC Guides — NHS Making Data Count',
+  title: 'SPC Guides — Making Data Count',
   description:
-    'Free guides to statistical process control for NHS and healthcare improvement teams — XmR charts, run charts, attribute charts, the four variation rules, and more.',
+    'Free guides to statistical process control for healthcare and improvement teams — XmR charts, run charts, attribute charts, the four variation rules, and more.',
   alternates: { canonical: '/guides' },
   openGraph: {
-    title: 'SPC Guides — NHS Making Data Count',
+    title: 'SPC Guides — Making Data Count',
     description:
-      'Free guides to statistical process control for NHS and healthcare improvement teams — XmR charts, run charts, attribute charts, the four variation rules, and more.',
+      'Free guides to statistical process control for healthcare and improvement teams — XmR charts, run charts, attribute charts, the four variation rules, and more.',
     type: 'website',
     url: '/guides',
   },
@@ -20,7 +20,7 @@ export default function GuidesIndex() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
+        <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Link
             href="/"
             className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium"
@@ -30,10 +30,10 @@ export default function GuidesIndex() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-10">
+      <main className="max-w-4xl mx-auto px-4 py-10">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">SPC Guides</h1>
         <p className="text-base text-gray-600 mb-8 leading-relaxed">
-          Practical guides to statistical process control following NHS Making Data Count methodology.
+          Practical guides to statistical process control following Making Data Count methodology.
           Learn how to build and interpret SPC charts for healthcare and improvement work.
         </p>
 

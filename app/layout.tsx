@@ -22,13 +22,13 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://spcmdc.com';
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Free NHS SPC Chart Tool — Making Data Count',
-    template: '%s | NHS SPC Chart Tool',
+    default: 'StatSPC — Free SPC Chart Builder',
+    template: '%s | StatSPC',
   },
   description:
-    'Free statistical process control chart builder following NHS Making Data Count methodology. Build XmR, run, P, C and U charts online — no login required.',
+    'Free statistical process control chart builder following Making Data Count methodology. Build XmR, run, P, C and U charts online — no login required.',
   openGraph: {
-    siteName: 'NHS SPC Chart Tool',
+    siteName: 'StatSPC',
     type: 'website',
     locale: 'en_GB',
   },

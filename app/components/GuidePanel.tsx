@@ -91,7 +91,7 @@ export default function GuidePanel({ open, onClose }: Props) {
           /* Article list */
           <>
             <p className="px-5 py-3 text-xs text-slate-500 border-b border-slate-800 shrink-0">
-              Following NHS Making Data Count methodology.
+              Following Making Data Count methodology.
             </p>
             <nav className="flex-1 overflow-y-auto py-1">
               <ul>

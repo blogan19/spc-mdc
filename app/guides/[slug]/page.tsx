@@ -41,8 +41,8 @@ export default function GuidePage({ params }: Props) {
     '@type': 'Article',
     headline: article.title,
     description: article.description,
-    author: { '@type': 'Organization', name: 'NHS SPC Chart Tool' },
-    publisher: { '@type': 'Organization', name: 'NHS SPC Chart Tool' },
+    author: { '@type': 'Organization', name: 'StatSPC' },
+    publisher: { '@type': 'Organization', name: 'StatSPC' },
     inLanguage: 'en-GB',
     about: { '@type': 'Thing', name: 'Statistical Process Control' },
   };
@@ -54,7 +54,7 @@ export default function GuidePage({ params }: Props) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <header className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
+        <div className="max-w-4xl mx-auto flex items-center gap-4">
           <Link
             href="/"
             className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors font-medium"
@@ -66,7 +66,7 @@ export default function GuidePage({ params }: Props) {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-10">
+      <main className="max-w-4xl mx-auto px-4 py-10">
         <article>
           <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
             {article.title}

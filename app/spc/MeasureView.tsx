@@ -246,7 +246,7 @@ function Controls({
             value={measure.settings.sigmaLevel ?? 3}
             onChange={(e) => onUpdateSettings({ sigmaLevel: Number(e.target.value) })}
             className="border border-gray-300 rounded px-1 py-0.5"
-            title="Sigma level for control limits. NHS Making Data Count uses 3σ (the default). Reducing to 2σ gives narrower limits that catch more signals."
+            title="Sigma level for control limits. Making Data Count uses 3σ (the default). Reducing to 2σ gives narrower limits that catch more signals."
           >
             <option value={2}>2σ</option>
             <option value={2.5}>2.5σ</option>

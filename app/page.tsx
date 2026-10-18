@@ -135,11 +135,11 @@ export default function HomePage() {
             {/* Wordmark */}
             <div className="text-center mb-12">
               <div className="text-4xl font-extrabold tracking-tight mb-1">
-                <span className="text-white">SPC</span>
-                <span className="text-slate-400 font-light"> — MDC</span>
+                <span className="text-white">Stat</span>
+                <span className="text-indigo-400">SPC</span>
               </div>
               <p className="mt-2 text-slate-400 text-sm">
-                Statistical process control following NHS Making Data Count methodology
+                Statistical process control following Making Data Count methodology
               </p>
             </div>
 
