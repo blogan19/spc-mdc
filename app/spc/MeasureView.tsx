@@ -176,7 +176,7 @@ export default function MeasureView({
         </div>
       )}
 
-      {!displayMode && <div className="px-3 sm:px-6 mt-3 mb-6">
+      {!displayMode && <div className="px-3 sm:px-6 mt-3">
         <div className="mx-auto w-full max-w-7xl bg-neutral-100 rounded-xl shadow-lg ring-1 ring-neutral-200 p-4 sm:p-8">
           <MeasureEditor
             measure={measure}
@@ -279,11 +279,11 @@ function Controls({
               value={measure.aim}
               onChange={(e) => onUpdateMeta({ aim: e.target.value as AimDirection })}
               className="border border-gray-300 rounded px-1 py-0.5"
-              title="Sets which direction counts as improvement. Pick None to monitor without editorialising signals."
+              title="Sets the direction of improvement. 'Higher is better' for things like satisfaction scores; 'Lower is better' for things like error counts or waiting times. Set a target to see whether you're consistently meeting it."
             >
-              <option value="increase">Increase</option>
-              <option value="decrease">Decrease</option>
-              <option value="none">None</option>
+              <option value="increase">Higher is better ↑</option>
+              <option value="decrease">Lower is better ↓</option>
+              <option value="none">No aim</option>
             </select>
           </label>
 

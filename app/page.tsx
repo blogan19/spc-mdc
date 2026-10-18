@@ -234,7 +234,7 @@ export default function HomePage() {
     <>
       <GuidePanel open={guideOpen} onClose={() => setGuideOpen(false)} />
 
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950">
+      <div className="pb-16">
         <input
           ref={openWorkspaceRef}
           type="file"

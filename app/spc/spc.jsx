@@ -768,7 +768,7 @@ const LineChart = ({ params }) => {
       svg.append('text')
         .attr('class', 'y label')
         .attr('text-anchor', 'middle')
-        .attr('y', Math.max(10, Math.round(axisLabelSize / 2) + 2))
+        .attr('y', axisLabelSize + 4)
         .attr('x', -height / 2)
         .attr('font-size', `${axisLabelSize}px`)
         .attr('transform', 'rotate(-90)')
