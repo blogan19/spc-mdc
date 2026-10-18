@@ -905,15 +905,15 @@ function EmptyRangeStep({
     [startISO, endISO, increment],
   );
 
-  const { validDates, invalidLines } = useMemo(() => {
-    if (entryMode !== 'manual') return { validDates: [] as string[], invalidLines: [] as string[] };
+  const { validDates } = useMemo(() => {
+    if (entryMode !== 'manual') return { validDates: [] as string[] };
     const tokens = manualText.split(/[\n,\t;]+/).map((l) => l.trim()).filter(Boolean);
     // Try to parse as a date for auto-fill; if not a date, use the raw label as-is
     const parsed = tokens.map((token) => parseFlexibleDate(token) ?? token);
     const unique = [...new Set(parsed)];
     // Only sort if every entry is an ISO date; otherwise preserve the user's order
     const allDates = unique.every((v) => /^\d{4}-\d{2}-\d{2}$/.test(v));
-    return { validDates: allDates ? unique.sort() : unique, invalidLines: [] as string[] };
+    return { validDates: allDates ? unique.sort() : unique };
   }, [entryMode, manualText]);
 
   const manualRows = useMemo<MeasureRow[]>(
