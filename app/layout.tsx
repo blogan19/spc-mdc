@@ -14,10 +14,24 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://spcmdc.com';
+
 export const metadata: Metadata = {
-  title: "SPC — MDC | Statistical Process Control Charts",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Free NHS SPC Chart Tool — Making Data Count',
+    template: '%s | NHS SPC Chart Tool',
+  },
   description:
-    "Free SPC chart builder following NHS Making Data Count methodology. Build XmR, run, P, C and U charts. Save as JSON or export as PNG.",
+    'Free statistical process control chart builder following NHS Making Data Count methodology. Build XmR, run, P, C and U charts online — no login required.',
+  openGraph: {
+    siteName: 'NHS SPC Chart Tool',
+    type: 'website',
+    locale: 'en_GB',
+  },
+  twitter: {
+    card: 'summary',
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 min-h-screen`}
       >
         {children}
       </body>

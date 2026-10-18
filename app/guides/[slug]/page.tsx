@@ -11,8 +11,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = getArticle(params.slug);
   if (!article) return {};
   return {
-    title: `${article.title} | SPC MDC`,
+    title: article.title,
     description: article.description,
+    alternates: { canonical: `/guides/${params.slug}` },
+    openGraph: {
+      title: article.title,
+      description: article.description,
+      type: 'article',
+      url: `/guides/${params.slug}`,
+    },
+    twitter: {
+      card: 'summary',
+      title: article.title,
+      description: article.description,
+    },
   };
 }
 
@@ -24,8 +36,23 @@ export default function GuidePage({ params }: Props) {
   const article = getArticle(params.slug);
   if (!article) notFound();
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.description,
+    author: { '@type': 'Organization', name: 'NHS SPC Chart Tool' },
+    publisher: { '@type': 'Organization', name: 'NHS SPC Chart Tool' },
+    inLanguage: 'en-GB',
+    about: { '@type': 'Thing', name: 'Statistical Process Control' },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <header className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-2xl mx-auto flex items-center gap-4">
           <Link
