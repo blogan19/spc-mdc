@@ -88,7 +88,7 @@ export default function FeedbackWidget() {
             <div className="px-4 py-8 text-center">
               <div className="text-3xl mb-2">✓</div>
               <p className="text-sm font-medium text-gray-800">Thanks for the feedback!</p>
-              <p className="text-xs text-gray-500 mt-1">We'll look into it.</p>
+              <p className="text-xs text-gray-500 mt-1">We&apos;ll look into it.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="px-4 py-4 space-y-3">
