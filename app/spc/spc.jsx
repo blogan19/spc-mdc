@@ -51,7 +51,6 @@ const LineChart = ({ params }) => {
     backgroundColor = '#ffffff',
     showForecast = false,
     forecastPeriods = 6,
-    downloadNote = '',
     chartNote = '',
     sigmaLevel = 3,
     onExportCsv,
