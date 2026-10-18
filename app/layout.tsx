@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Script from "next/script";
+import FeedbackWidget from "@/app/components/FeedbackWidget";
 import "./globals.css";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
@@ -48,6 +49,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950 min-h-screen`}
       >
         {children}
+        <FeedbackWidget />
         {GA_ID && (
           <>
             <Script
