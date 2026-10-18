@@ -18,12 +18,21 @@ export default function MeasureEditor({
   onSetRecalculation,
   onUpdateSettings,
   onUpdateTarget,
+  autoOpenFile = null,
 }) {
   const [tab, setTab] = useState('data'); // 'data' | 'appearance'
   const [recalcDialogRow, setRecalcDialogRow] = useState(null);
   const [csvOpen, setCsvOpen] = useState(false);
   const [pendingDropFile, setPendingDropFile] = useState(null);
   const [dragHover, setDragHover] = useState(false);
+
+  // When a file is passed in from the landing page drop zone, auto-open import
+  useEffect(() => {
+    if (autoOpenFile) {
+      setPendingDropFile(autoOpenFile);
+      setCsvOpen(true);
+    }
+  }, [autoOpenFile]);
 
   const { data, settings } = measure;
 
@@ -402,6 +411,17 @@ export default function MeasureEditor({
             />
           </td>
         )}
+        <td className="p-1 border-solid border border-black text-center">
+          <button
+            type="button"
+            onClick={() => handleRemoveRow(c, 'B')}
+            className="text-gray-400 hover:text-red-600 transition-colors leading-none px-1"
+            title="Delete this row"
+            aria-label="Delete row"
+          >
+            ×
+          </button>
+        </td>
       </tr>
     );
   });
@@ -464,6 +484,7 @@ export default function MeasureEditor({
                     Control Lines
                   </th>
                 )}
+                <th className="bg-slate-300 border-solid border border-black w-8"></th>
               </tr>
             </thead>
             <tbody>{dataRows}</tbody>
@@ -486,9 +507,18 @@ export default function MeasureEditor({
                     <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                       {dateHeader}
                     </span>
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-gray-900 flex-1">
                       {dateDisplay || '—'}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveRow(c, 'B')}
+                      className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none px-1"
+                      title="Delete this row"
+                      aria-label="Delete row"
+                    >
+                      ×
+                    </button>
                   </div>
                   <label className="block mt-2">
                     <span className="text-xs text-gray-500">{valueHeader}</span>
