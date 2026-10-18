@@ -487,12 +487,43 @@ export default function MeasureEditor({
                 <th className="bg-slate-300 border-solid border border-black w-8"></th>
               </tr>
             </thead>
-            <tbody>{dataRows}</tbody>
+            <tbody>
+              {dataRows}
+              {data.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={4 + (needsDenominator ? 1 : 0) + (showRecalc ? 1 : 0) + 1}
+                    className="py-6 text-center text-sm text-gray-400 border border-dashed border-gray-300"
+                  >
+                    No data yet —{' '}
+                    <button
+                      type="button"
+                      onClick={handleAddRow}
+                      className="text-blue-600 hover:underline"
+                    >
+                      add your first row
+                    </button>
+                  </td>
+                </tr>
+              )}
+            </tbody>
           </table>
           </div>
 
           {/* Mobile card view — bigger tap targets, one row per card,
               comment fields collapse so the value entry stays the focus. */}
+          {data.length === 0 && (
+            <div className="sm:hidden py-8 text-center text-sm text-gray-400 border border-dashed border-gray-300 rounded-lg">
+              No data yet —{' '}
+              <button
+                type="button"
+                onClick={handleAddRow}
+                className="text-blue-600 hover:underline"
+              >
+                add your first row
+              </button>
+            </div>
+          )}
           <ul className="sm:hidden space-y-2">
             {data.map((row, c) => {
               const { date, value, comment, denominator } = row;
@@ -587,8 +618,15 @@ export default function MeasureEditor({
             })}
           </ul>
 
-          <button onClick={handleAddRow} className="mt-2 w-full sm:w-auto px-4 py-2 sm:px-3 sm:py-1 rounded border border-gray-300 hover:bg-gray-50 text-sm">
-            {isPareto ? '+ Add category' : isFunnel ? '+ Add unit' : addRowLabel}
+          <button
+            onClick={handleAddRow}
+            className={`mt-2 w-full sm:w-auto px-4 py-2 sm:px-3 sm:py-1 rounded border text-sm transition-colors ${
+              data.length === 0
+                ? 'border-blue-400 bg-blue-50 text-blue-700 hover:bg-blue-100'
+                : 'border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {isPareto ? '+ Add category' : isFunnel ? '+ Add unit' : data.length === 0 ? '+ Add first row' : addRowLabel}
           </button>
         </div>
       ) : (
